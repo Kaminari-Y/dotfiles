@@ -1,5 +1,8 @@
 # dotfiles
-add later
+These are the dotfiles which I am usually setting on my working environment.
+* .gitconfig
+* .zshrc
+* .vimrc
 
 # Homebrew
 ## Install xcode
@@ -14,6 +17,18 @@ Use the command below
 ```
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 brew -v
+```
+
+# Get Ruby done
+## Install rbenv for ruby environment management.
+```
+brew install ruby-build
+brew install rbenv
+```
+
+## Install ruby by rbenv
+```
+rbenv install ${version_I_want_use}
 ```
 
 # Install applications and configure them by script

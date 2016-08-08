@@ -31,8 +31,6 @@ brew install peco || true
 brew install docker || true
 brew install docker-machine || true
 brew install vim || true
-brew install ruby-build || true
-brew install rbenv || true
 brew linkapps
 
 # nokogiri
