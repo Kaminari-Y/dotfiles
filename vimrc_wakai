@@ -1,0 +1,182 @@
+autocmd FileType python let b:did_ftplugin = 1
+set hls is
+let s:noplugin = 0
+let s:bundle_root = expand('~/.vim/bundle')
+let s:neobundle_root = s:bundle_root . '/neobundle.vim'
+if !isdirectory(s:neobundle_root) || v:version < 702
+    " NeoBundleが存在しない、もしくはVimのバージョンが古い場合はプラグインを一切
+    " 読み込まない
+    let s:noplugin = 1
+else
+    " NeoBundleを'runtimepath'に追加し初期化を行う
+    if has('vim_starting')
+        execute "set runtimepath+=" . s:neobundle_root
+    endif
+    call neobundle#rc(s:bundle_root)
+
+    " NeoBundle自身をNeoBundleで管理させる
+    NeoBundleFetch 'Shougo/neobundle.vim'
+
+    NeoBundle 'davidhalter/jedi-vim'
+    "NeoBundle 'kevinw/pyflakes-vim'
+    NeoBundle 'nathanaelkane/vim-indent-guides'
+    NeoBundle 'plasticboy/vim-markdown'
+    NeoBundle 'mattn/emmet-vim'
+    NeoBundle 'hail2u/vim-css3-syntax'
+    " NeoBundle 'taichouchou2/html5.vim'
+    NeoBundle 'mattn/jscomplete-vim'
+    NeoBundle 'pangloss/vim-javascript'
+    "NeoBundle 'taichouchou2/vim-javascript'
+    NeoBundle 'myhere/vim-nodejs-complete'
+    NeoBundle 'Shougo/neocomplcache'
+    NeoBundle 'scrooloose/syntastic'
+    NeoBundleLazy 'jelera/vim-javascript-syntax', {'autoload':{'filetypes':['javascript']}}
+    NeoBundle 'majutsushi/tagbar'
+    NeoBundle 'xolox/vim-easytags'
+    NeoBundle 'xolox/vim-misc'
+    NeoBundle 'alfredodeza/khuno.vim'
+    NeoBundle 'hynek/vim-python-pep8-indent'
+    NeoBundle 'jmcantrell/vim-virtualenv'
+    NeoBundle 'stephpy/vim-yaml'
+    "NeoBundle 'atelierbram/vim-colors_duotones'
+    "NeoBundle 'altercation/vim-colors-solarized'
+    "NeoBundle 'tweekmonster/braceless.vim'
+    "NeoBundle 'bling/vim-airline'
+    "NeoBundle 'vim-airline/vim-airline-themes'
+
+    " 非同期通信を可能にする
+    " 'build'が指定されているのでインストール時に自動的に
+    " 指定されたコマンドが実行され vimproc がコンパイルされる
+    NeoBundle "Shougo/vimproc", {
+        \ "build": {
+        \   "windows"   : "make -f make_mingw32.mak",
+        \   "cygwin"    : "make -f make_cygwin.mak",
+        \   "mac"       : "make -f make_mac.mak",
+        \   "unix"      : "make -f make_unix.mak",
+        \ }}
+
+
+    " インストールされていないプラグインのチェックおよびダウンロード
+    NeoBundleCheck
+endif
+
+" ファイルタイププラグインおよびインデントを有効化
+" これはNeoBundleによる処理が終了したあとに呼ばなければならない
+filetype plugin indent on
+
+let g:jedi#auto_initialization = 1
+let g:jedi#rename_command = "<leader>R"
+let g:jedi#popup_on_dot = 1
+
+" color scheme
+"syntax enable
+"set background=light
+"colorscheme  base16-duotone-dark
+
+" .mdのファイルもfiletypeがmarkdownとなるように
+au BufRead,BufNewFile *.md set filetype=markdown
+
+" JavaScript系のインデントはスペース二つ
+autocmd filetype coffee,javascript setlocal shiftwidth=4 softtabstop=4 tabstop=4 expandtab number
+
+" HTML 5 tags
+syn keyword htmlTagName contained article aside audio bb canvas command
+syn keyword htmlTagName contained datalist details dialog embed figure
+syn keyword htmlTagName contained header hgroup keygen mark meter nav output
+syn keyword htmlTagName contained progress time ruby rt rp section time
+syn keyword htmlTagName contained source figcaption
+syn keyword htmlArg contained autofocus autocomplete placeholder min max
+syn keyword htmlArg contained contenteditable contextmenu draggable hidden
+syn keyword htmlArg contained itemprop list sandbox subject spellcheck
+syn keyword htmlArg contained novalidate seamless pattern formtarget
+syn keyword htmlArg contained formaction formenctype formmethod
+syn keyword htmlArg contained sizes scoped async reversed sandbox srcdoc
+syn keyword htmlArg contained hidden role
+syn match   htmlArg "\<\(aria-[\-a-zA-Z0-9_]\+\)=" contained
+syn match   htmlArg contained "\s*data-[-a-zA-Z0-9_]\+"
+
+" Ctrl + hjkl でウィンドウ間を移動
+"nnoremap <C-h> <C-w>h
+"nnoremap <C-j> <C-w>j
+"nnoremap <C-k> <C-w>k
+"nnoremap <C-l> <C-w>l
+
+
+"tagbar
+nmap <F8> :TagbarToggle<CR>
+set tags+=~/.vimtags
+" tag remap
+" tt でtag/C-tでtag back
+nnoremap [Tag] <Nop>
+nmap t [Tag]
+nnoremap [Tag]t  <C-]>
+nnoremap <silent> [Tag]n  :<C-u>tag<CR>
+nnoremap <silent> [Tag]p  :<C-u>pop<CR>
+nnoremap <silent> [Tag]l  :<C-u>tags<CR>
+
+" pyfleaks-vim
+let g:syntastic_mode_map = {
+            \ 'mode': 'active',
+            \ 'active_filetypes': ['php', 'coffeescript', 'sh', 'vim', 'javascript', 'ruby'],
+            \ 'passive_filetypes': ['html', 'haskell', 'python']
+            \}
+let g:syntastic_python_checkers = ["flake8"]
+let g:syntastic_javascript_checkers = ["jshint"]
+highlight clear SpellBad
+highlight SpellBad term=underline cterm=underline ctermfg=white ctermbg=red  gui=undercurl guisp=Red
+
+
+function! InitPython()
+    " jedi.vimとpyhoncompleteがバッティングし得るらしいので
+    " http://mattn.kaoriya.net/software/vim/20121018212621.htm
+    let b:did_ftplugin = 1
+ 
+    setlocal commentstring=#%s
+ 
+    " rename用のマッピングを無効にしたため、代わりにコマンドを定義
+    command! -nargs=0 JediRename :call jedi#rename()
+ 
+    " markdownはインベント幅4,タブ幅8でスペースを使う
+    " http://d.hatena.ne.jp/over80/20090305/1236264851
+    setlocal shiftwidth=4
+    setlocal tabstop=8
+    setlocal softtabstop=4
+    setlocal expandtab
+    setlocal matchtime=3
+
+    setlocal autoindent
+    setlocal smartindent
+    setlocal cinwords=if,elif,else,for,while,try,except,finally,def,class
+    setlocal nu
+
+    " flake8
+    "let g:flake8_show_in_file=1
+    "    autocmd BufWritePost *.py call Flake8()
+    "nnoremap <buffer> <leader>l :<C-u>call Flake8()<CR>
+
+    " Khuno
+    let g:khuno_max_line_length=99
+
+    IndentGuidesEnable
+endfunction
+"autocmd FileType python BracelessEnable +fold
+autocmd BufEnter * if &filetype == "python" | call InitPython() | endif
+
+" vim-markdown
+let g:vim_markdown_folding_disabled = 1
+
+" neocompllcache
+"let g:neocomplcache_enable_at_startup = 1
+"let g:neocomplcache_enable_smart_case = 1
+"let g:neocomplcache_min_syntax_length = 3
+"let g:neocomplcache_lock_buffer_name_pattern = '\*ku\*'
+"inoremap <expr><C-g>     neocomplcache#undo_completion()
+"inoremap <expr><C-l>     neocomplcache#complete_common_string()
+
+" jscomplete-vim
+"let g:jscomplete_use = ['dom', 'moz', 'es6th']
+
+" vim-airline
+"set laststatus=2
+"let g:airline_theme='solarized'
+"let g:airline_theme='base16'
